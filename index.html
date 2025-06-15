@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pre‑Test: Systems Thinking in LGU Finance</title>
+  <style>
+    body { font-family: Arial; margin: 2rem; background: #f9f9f9; color: #333; }
+    h1, h2 { color: #004a99 }
+    .question { margin-bottom: 1.5rem; background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    textarea { width: 100%; height: 80px; margin-top: 0.5rem; }
+    input[type="submit"] { padding: 10px 20px; background: #004a99; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    input[type="submit"]:hover { background: #0066cc; }
+    .result { margin-top: 1rem; font-size: 1.2rem; font-weight: bold;}
+  </style>
+</head>
+<body>
+
+  <h1>Pre‑Test: Systems Thinking in Local Government Finance</h1>
+  <p><strong>Time:</strong> 15–20 min · <strong>Instructions:</strong> Select best answer or write briefly.</p>
+
+  <form id="pretestForm">
+
+    <!-- Multiple-choice questions 1–5 -->
+    ${[1,2,3,4,5].map(i => `
+      <div class="question">
+        <h2>${i}. ${[
+          "What best defines “systems thinking” in the context of local government finance?",
+          "Which of the following is an example of a feedback loop in LGU finance?",
+          "Which term describes delayed or indirect policy effects?",
+          "Which of the following is not a systems thinking principle?",
+          "A reinforcing feedback loop tends to…"
+        ][i-1]}</h2>
+        ${[
+          ["A. A method of calculating taxes","B. A way to analyze individual financial transactions","C. A holistic approach that considers interrelationships and patterns over time","D. A budgeting method used by national governments"],
+          ["A. Approving a one-time grant for a community project","B. Increasing taxes resulting in better services and more revenue","C. Recording financial data in Excel","D. Hiring an external auditor"],
+          ["A. Fiscal buffering","B. Delayed policy impact","C. Budget saturation","D. Tax harmonization"],
+          ["A. Interconnectedness","B. Feedback loops","C. Linear budgeting","D. Delays in impact"],
+          ["A. Stabilize the system","B. Decrease complexity","C. Accelerate changes in the same direction","D. Cancel out unintended effects"]
+        ][i-1].map((opt,j) => `<label><input type="radio" name="q${i}" value="${['a','b','c','d'][j]}" required> ${opt}</label>`).join("")}
+      </div>
+    `).join("")}
+
+    <!-- Short-answer questions 6–10 -->
+    ${[6,7,8,9,10].map(i => `
+      <div class="question">
+        <h2>${i}. ${[
+          "Why is it important to identify unintended consequences in fiscal policies?",
+          "What is one example of an interdependency in LGU financial systems?",
+          "Describe in your own words what a “financial ecosystem” in an LGU might include.",
+          "Why might traditional linear thinking be insufficient when managing local budgets?",
+          "Name one tool that can help visualize systemic interactions in LGU finance."
+        ][i-6]}</h2>
+        <textarea name="q${i}" required></textarea>
+      </div>
+    `).join("")}
+
+    <input type="submit" value="Submit Pre‑Test">
+
+    <div id="result" class="result"></div>
+  </form>
+
+<script>
+  const CORRECT = { q1: 'c', q2: 'b', q3: 'b', q4: 'c', q5: 'c' };
+  const scriptUrl = 'YOUR_SCRIPT_URL_HERE';
+
+  document.getElementById('pretestForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+
+    let mcqScore = 0;
+    ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
+      if (data.get(q) === CORRECT[q]) mcqScore++;
+    });
+
+    // Short-answer scoring
+    let shortScore = 0;
+
+    if ((data.get('q6') || '').toLowerCase().includes('unintended')) shortScore++;
+    if ((data.get('q7') || '').toLowerCase().includes('revenue')) shortScore++;
+    if ((data.get('q8') || '').toLowerCase().includes('ecosystem')) shortScore++;
+    if ((data.get('q9') || '').toLowerCase().includes('linear')) shortScore++;
+    const q10 = (data.get('q10') || '').toLowerCase();
+    if (q10.includes('vensim') || q10.includes('power bi') || q10.includes('causal loop')) shortScore++;
+
+    const payload = {
+      score: mcqScore + '/5',
+      shortAnswerScore: shortScore + '/5'
+    };
+
+    for (let [key, val] of data.entries()) payload[key] = val;
+
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        body: new URLSearchParams(payload)
+      });
+      document.getElementById('result').textContent = `✅ You scored ${mcqScore}/5 (MCQ) and ${shortScore}/5 (Short Answer). Thank you!`;
+      form.reset();
+    } catch (err) {
+      document.getElementById('result').textContent = '❗ Submission failed. Please try again.';
+      console.error(err);
+    }
+  };
+</script>
+</body>
+</html>
